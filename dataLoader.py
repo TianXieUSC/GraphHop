@@ -11,7 +11,7 @@ import warnings
 import torch
 import torch_geometric.transforms as T
 
-from torch_geometric.datasets import CoraFull, Amazon, PPI, Coauthor, Planetoid
+from torch_geometric.datasets import Planetoid
 
 warnings.filterwarnings('ignore')
 
