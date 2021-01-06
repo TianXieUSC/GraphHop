@@ -6,12 +6,9 @@ import scipy.sparse as sp
 import torch
 
 from logisticRegression import fit
-
+from datetime import datetime
 from dataLoader import load_preprocess_data, load_cora_full, load_amazon_dataset, load_coauthor_dataset, \
     load_planetoid_datasets, preprocess_features
-from load_reddit_dataset import load_reddit_data
-from load_ppi_dataset import load_ppi_data
-from load_nell_dataset import load_nell_data
 from utils import edge_weight, multiHops, normalize, one_shot_edge_weight, random_walk_normalize, pure_k_hops, \
     sparse_mx_to_torch_sparse_tensor, accuracy
 from sklearn.ensemble import RandomForestClassifier
@@ -24,17 +21,18 @@ if torch.cuda.is_available():
 
 dataset = DATASET
 
-# logging.basicConfig(filename="./results/output_tuning_{}.txt".format(dataset),
+date = datetime.now()
+# logging.basicConfig(filename="./results/output_label_rate_{}_tuning_{}.txt".format(NUM_PER_CLASS, dataset),
 #                     level=logging.DEBUG)
 # logging.info(
-#     "TEMPERATURE: {}, ALPHA: {}, BETA: {}, W1: {}, W2: {}, Batch prop: {}".format(TEMPERATURE, ALPHA, BETA, W1, W2,
-#                                                                                   BATCH_PROP))
+#     "Date: {}, TEMPERATURE: {}, ALPHA: {}, BETA: {}, W1: {}, W2: {}".format(date.strftime("%Y-%b-%d (%H:%M:%S.%f)"),
+#                                                                             TEMPERATURE, ALPHA, BETA, W1, W2))
 
 num_labels_per_class = NUM_PER_CLASS
 if dataset in ['cora', 'citeseer', 'pubmed']:
-    # feat, one_hot_labels, adj, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_planetoid_datasets(
-    #     dataset, num_labels_per_class)
-    feat, one_hot_labels, adj, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_preprocess_data(dataset)
+    feat, one_hot_labels, adj, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_planetoid_datasets(
+        dataset, num_labels_per_class)
+    # feat, one_hot_labels, adj, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_preprocess_data(dataset)
 elif dataset == 'cora_full':
     feat, one_hot_labels, adj, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_cora_full(
         num_labels_per_class=num_labels_per_class)
@@ -54,24 +52,8 @@ elif dataset in ['coauthor-cs', 'coauthor-physics']:
     feat, one_hot_labels, adj, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_coauthor_dataset(dataset,
                                                                                                                name,
                                                                                                                num_labels_per_class=num_labels_per_class)
-elif dataset == 'reddit':
-    path = "/Users/tian/Documents/P8_Graph_Based_Learning/datasets/reddit/"
-    original_split = True
-    feat, one_hot_labels, adj, train_mask, val_mask, test_mask = load_reddit_data(path, original_split,
-                                                                                  num_labels_per_class=num_labels_per_class)
-elif dataset == 'ppi':
-    path = "/Users/tian/Documents/P8_Graph_Based_Learning/datasets/molecular/ppi/"
-    original_split = False
-    feat, one_hot_labels, adj, train_mask, val_mask, test_mask = load_ppi_data(path, original_split, training_ratio=0.1)
-elif dataset == 'nell':
-    path = "/Users/tian/Documents/P8_Graph_Based_Learning/datasets/NELL/"
-    feat, one_hot_labels, adj, train_mask, val_mask, test_mask = load_nell_data(path, num_labels_per_class)
 
-print('train: ', feat[train_mask].shape)
-print('val: ', feat[val_mask].shape)
-print('test: ', feat[test_mask].shape)
-
-feat = preprocess_features(feat)
+# feat = preprocess_features(feat)
 labels = np.where(one_hot_labels == 1)[1]
 
 # # change the size of training data
@@ -98,8 +80,8 @@ pseudo_labels = np.zeros(one_hot_labels.shape)
 pseudo_labels[train_mask] = one_hot_labels[train_mask]
 y_val = one_hot_labels[val_mask]
 
-epoch = 50
-# f1 = open('./results/output_average_two_hops_ensemble_{}.txt'.format(dataset), 'a')
+epoch = 100
+f1 = open('./results/{}_num_labels_per_class_{}.txt'.format(dataset, num_labels_per_class), 'a')
 # f2 = open('./results/output_{}_two_hops_{}_weighted_{}_l2_norm.txt'.format(dataset, two_hops, weighted), 'w')
 
 output = []
@@ -121,6 +103,7 @@ if torch.cuda.is_available():
     pseudo_labels = pseudo_labels.cuda()
     one_hot_labels = one_hot_labels.cuda()
 
+ave_acc = []
 for i in range(epoch + 1):
     one_agg_feat = torch.spmm(one_hops_adj, new_feat)
     two_agg_feat = torch.spmm(two_hops_adj, new_feat)
@@ -156,20 +139,23 @@ for i in range(epoch + 1):
     clf_1.eval()
     clf_2.eval()
 
-    # train_score = (clf_1.score(X_1[train_mask], y_train) + clf_2.score(X_2[train_mask], y_train)) / 2
-    # test_score = (clf_1.score(X_1[test_mask], y_test) + clf_2.score(X_2[test_mask], y_test)) / 2
-    train_score = accuracy(new_feat[train_mask], one_hot_labels[train_mask])
-    val_score = accuracy(new_feat[val_mask], one_hot_labels[val_mask])
-    test_score = accuracy(new_feat[test_mask], one_hot_labels[test_mask])
-    print('epoch {}, train accuracy: {:.4f}, validation accuracy: {:.4f}, test accuracy: {:.4f}'.format(i, train_score,
-                                                                                                        val_score,
-                                                                                                        test_score))
+    y_train = one_hot_labels[train_mask]
+    y_test = one_hot_labels[test_mask]
+    if torch.cuda.is_available():
+        y_train = y_train.cuda()
+        y_test = y_test.cuda()
+
+    train_score = accuracy(new_feat[train_mask], y_train)
+    test_score = accuracy(new_feat[test_mask], y_test)
+    print('epoch {}, train accuracy: {:.4f}, test accuracy: {:.4f}'.format(i, train_score, test_score))
+    ave_acc.append(test_score.item())
     # logging.info('epoch: {}, train accuracy: {:.4f}, test accuracy: {:.4f}'.format(i, train_score, test_score))
 
-    # f1.write('{},'.format(i) + str(test_score.item()) + '\n')
+    f1.write('{},'.format(i) + str(test_score.item()) + '\n')
 
     # output.append(new_feat[1708].tolist())
     # np.save('./results/output_{}_two_hops_{}_weighted_{}_test_1708_nodes.npy'.format(dataset, two_hops, weighted),
     #         np.array(output))
 
+# f1.write(str(np.mean(ave_acc[-6:-1])) + '\n')
 # logging.info('\n')

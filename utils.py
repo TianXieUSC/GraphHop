@@ -124,7 +124,6 @@ def multiHops(adj, k):
         multi_adj = multi_adj.dot(adj)
     return multi_adj
 
-
 def pure_k_hops(adj, k):
     multi_adj = adj
     pre_multi_adj = [adj]
@@ -146,14 +145,6 @@ def accuracy(output, labels):
     correct = preds.eq(labels).double()
     correct = correct.sum()
     return correct / len(labels)
-
-
-def accuracy_multilabel(preds, labels):
-    """Multilabel accuracy with masking."""
-    preds = preds > 0.5
-    labels = labels > 0.5
-    correct = torch.eq(preds, labels).type(torch.float)
-    return correct.mean()
 
 
 def sparse_mx_to_torch_sparse_tensor(sparse_mx):

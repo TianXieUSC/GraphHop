@@ -6,7 +6,7 @@ import copy
 
 from torch.nn import Linear
 from torch.nn.parameter import Parameter
-from run_model import TEMPERATURE, ALPHA, BETA, BATCH_PROP, DATASET
+from run_model import TEMPERATURE, ALPHA, BETA, BATCH_PROP
 from dataLoader import load_preprocess_data
 
 learning_rate = 0.01
@@ -18,9 +18,7 @@ temperature = TEMPERATURE
 alpha = ALPHA
 beta = BETA
 batch_prop = BATCH_PROP
-dataset = DATASET
 
-f1 = open('./results/loss_{}.txt'.format(dataset), 'a')
 
 class LogisticRegression(torch.nn.Module):
     def __init__(self, num_feat, num_classes):
@@ -114,8 +112,7 @@ def fit(step, feat, labels, train_mask, val_mask, y_val, prev_model):
         prev_loss_val = loss_val
         # print("epoch: {}, train loss: {:.4f}, train accuracy: {:.4f}, validation loss: {:.4f}, "
         #       "validation accuracy: {:.4f}".format(i, loss_train, accuracy_train, loss_val, accuracy_val))
-        if step != 0:
-            f1.write('{},'.format(i) + str(loss_train.item()) + '\n')
+        # f1.write(str(accuracy_val.item()) + ',\n')
     return best_model
 
 

@@ -3,13 +3,13 @@ import argparse
 import model
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--dataset", default='pubmed', type=str)
-parser.add_argument("--num_per_class", default=20, type=int)
+parser.add_argument("--dataset", default='cora', type=str)
+parser.add_argument("--num_per_class", default=2, type=int)
 parser.add_argument("--batch_prop", default=1., type=float)
-parser.add_argument("--temperature", default=.1, type=float)
-parser.add_argument("--alpha", default=1., type=float)
-parser.add_argument("--beta", default=1., type=float)
-parser.add_argument("--W1", default=.5, type=float)
+parser.add_argument("--temperature", default=100., type=float)
+parser.add_argument("--alpha", default=10., type=float)
+parser.add_argument("--beta", default=.0, type=float)
+parser.add_argument("--W1", default=.1, type=float)
 parser.add_argument("--W2", default=.1, type=float)
 args = parser.parse_args()
 

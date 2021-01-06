@@ -197,6 +197,8 @@ def split_by_fixed_training_data(data, num_labels_per_class=20):
     num = data.x.shape[0]
     num_labels = data.num_classes
     labels = data.y.tolist()
+    # the different sampling of training set requires the parameters retuning
+    # labels = np.random.RandomState(seed=2).permutation(labels).tolist()
 
     idx_train = []
     class_cnt = np.zeros(num_labels)
@@ -223,7 +225,7 @@ def split_by_fixed_training_data(data, num_labels_per_class=20):
 
 
 def load_cora_full(num_labels_per_class=20):
-    path = os.path.join("/Users/tian/Documents/P7_/experiments/hierarchyClustering/data", "cora_full")
+    path = os.path.join("data", "cora_full")
     dataset = CoraFull(root=path, transform=T.NormalizeFeatures())
     data = dataset[0]
     data.num_classes = dataset.num_classes
@@ -244,7 +246,7 @@ def load_cora_full(num_labels_per_class=20):
 
 
 def load_amazon_dataset(dataset, name, num_labels_per_class=20):
-    path = os.path.join("../hierarchyClustering/data", dataset)
+    path = os.path.join("data", dataset)
     dataset = Amazon(root=path, name=name, transform=T.NormalizeFeatures())
     data = dataset[0]
     data.num_classes = dataset.num_classes
@@ -265,7 +267,7 @@ def load_amazon_dataset(dataset, name, num_labels_per_class=20):
 
 
 def load_coauthor_dataset(dataset, name, num_labels_per_class=20):
-    path = os.path.join("../hierarchyClustering/data", dataset)
+    path = os.path.join("data", dataset)
     dataset = Coauthor(root=path, name=name, transform=T.NormalizeFeatures())
     data = dataset[0]
     data.num_classes = dataset.num_classes
@@ -328,22 +330,19 @@ def load_PPI_daset():
 
 
 if __name__ == '__main__':
-    features, labels, adj, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_amazon_dataset(
-        'amazon-computers', 'computers')
+    # features, labels, adj, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_amazon_dataset(
+    #     'amazon-computers', 'computers')
     # print('train: ', features[train_mask].shape)
     # print('val: ', features[val_mask].shape)
     # print('test: ', features[test_mask].shape)
     # print('labels: ', labels.shape)
     features, labels, adj, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_planetoid_datasets('cora')
-    print(type(features))
-    print(type(labels))
-    print(type(adj))
     # features, labels, adj, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_cora_full(20)
     print('train: ', features[train_mask].shape)
     print('val: ', features[val_mask].shape)
     print('test: ', features[test_mask].shape)
     print('labels: ', labels.shape)
-    print('edges: ', adj.nonzero()[0].shape[0])
+    print(np.where(val_mask == True))
 
     # from sklearn.linear_model import LogisticRegression
     # labels = np.where(labels == 1)[1]
