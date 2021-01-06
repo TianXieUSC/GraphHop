@@ -1,8 +1,1 @@
-for i in {1..5}; do
-  python run_model.py
-done
-
-#for ((i = 0; i < 2; i++))
-#do
-#  python run_model.py
-#done
+python run_model.py --dataset cora --num_per_class 20 --batch_prop 512 --temperature .1 --alpha 10 --beta 1

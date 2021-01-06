@@ -5,14 +5,12 @@ import numpy as np
 import copy
 
 from torch.nn import Linear
-from torch.nn.parameter import Parameter
 from run_model import TEMPERATURE, ALPHA, BETA, BATCH_PROP
-from dataLoader import load_preprocess_data
 
 learning_rate = 0.01
 weight_decay = 5e-4
 epoch = 1000
-early_stopping = 50
+early_stopping = 10
 
 temperature = TEMPERATURE
 alpha = ALPHA
@@ -54,32 +52,34 @@ def fit(step, feat, labels, train_mask, val_mask, y_val, prev_model):
     X_val = feat[val_mask]
     y_val = y_val
 
+    new_batch_prop = float(batch_prop / feat.shape[0])
+
     if step <= 1:
         model = LogisticRegression(num_feat, num_classes)
         if torch.cuda.is_available():
             model.cuda()
     else:
         model = prev_model
-        # # add perturbations on model parameters
-        # with torch.no_grad():
-        #     for param in model.parameters():
-        #         param.add_(torch.randn(param.size()) * 0.1)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     model.train()
     count = 0
     best_model = copy.deepcopy(model)
     prev_loss_val = np.inf
     for i in range(epoch):
-        for j in range(0, int(1. / batch_prop) + 1):
+        for j in range(0, int(1. / new_batch_prop) + 1):
             optimizer.zero_grad()
-            y_train_batch = y_train[int(y_train.shape[0] * j * batch_prop):int(y_train.shape[0] * (j + 1) * batch_prop)]
+            y_train_batch = y_train[
+                            int(y_train.shape[0] * j * new_batch_prop):int(y_train.shape[0] * (j + 1) * new_batch_prop)]
             if y_train_batch.shape[0] == 0:
                 break
             y_pseudo_batch = y_pseudo[
-                             int(y_pseudo.shape[0] * j * batch_prop):int(y_pseudo.shape[0] * (j + 1) * batch_prop)]
-            X_train_batch = X_train[int(X_train.shape[0] * j * batch_prop):int(X_train.shape[0] * (j + 1) * batch_prop)]
+                             int(y_pseudo.shape[0] * j * new_batch_prop):int(
+                                 y_pseudo.shape[0] * (j + 1) * new_batch_prop)]
+            X_train_batch = X_train[
+                            int(X_train.shape[0] * j * new_batch_prop):int(X_train.shape[0] * (j + 1) * new_batch_prop)]
             X_pseudo_batch = X_pseudo[
-                             int(X_pseudo.shape[0] * j * batch_prop):int(X_pseudo.shape[0] * (j + 1) * batch_prop)]
+                             int(X_pseudo.shape[0] * j * new_batch_prop):int(
+                                 X_pseudo.shape[0] * (j + 1) * new_batch_prop)]
             y_train_log_prob = model.forward(X_train_batch)
             y_pseudo_log_prob = model.forward(X_pseudo_batch)
             num_train = y_train_batch.shape[0]
@@ -122,25 +122,3 @@ def accuracy(output, labels):
     correct = preds.eq(labels).double()
     correct = correct.sum()
     return correct / len(labels)
-
-# f1 = open('./results/output_amazon-photo.txt', 'w')
-#
-# dataset = 'cora'
-# emb_dimensions = 20
-# feat, one_hot_labels, adj, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_preprocess_data(dataset,
-#                                                                                                           emb_dimensions)
-#
-# fit(0, torch.tensor(feat, dtype=torch.float), torch.tensor(one_hot_labels), train_mask, val_mask)
-
-# # toy example
-# from sklearn.datasets import load_iris
-# from sklearn.preprocessing import OneHotEncoder
-#
-# X, y = load_iris(return_X_y=True)
-# one_hot_y = OneHotEncoder().fit_transform(y.reshape(-1, 1))
-# train_mask = np.ones(X.shape[0], dtype=bool)
-#
-# val_mask = train_mask
-#
-# temp = fit(torch.tensor(X, dtype=torch.float), torch.tensor(one_hot_y.toarray()), train_mask, val_mask)
-# print(temp.score(torch.tensor(X, dtype=torch.float), torch.tensor(one_hot_y.toarray())))

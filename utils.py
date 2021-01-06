@@ -1,18 +1,12 @@
-import os
-import random
-
 import numpy as np
 import scipy.sparse as sp
 import torch
 from scipy.spatial.distance import cosine, euclidean
-from scipy.sparse import csr_matrix
+
 from sklearn.metrics.pairwise import euclidean_distances, cosine_similarity
-from sklearn.linear_model import LogisticRegression
 
 # select samples that are farthest to the center
 from dataLoader import load_preprocess_data
-import torch_geometric.transforms as T
-from torch_geometric.datasets import CoraFull
 
 
 def maxCover(data, ratio):
@@ -77,16 +71,6 @@ def edge_weight(data, adj, type='euclidean'):
     return weight_matrix
 
 
-# def edge_weight(data, adj, type='euclidean'):
-#     weight = one_shot_edge_weight(data, type=type)
-#     adj_weight = adj.multiply(weight).toarray()
-#     adj_weight[np.where(adj_weight != 0)] = np.exp(adj_weight[np.where(adj_weight != 0)])
-#     exp_weight = adj_weight
-#     weight_row_sum = np.diag(np.power(exp_weight.sum(1), -1))
-#     final_weight = weight_row_sum.dot(exp_weight)
-#     return final_weight
-
-
 # calculate the feature similarity matrix
 def one_shot_edge_weight(data, type='euclidean'):
     assert (type in ['euclidean', 'cosine'])
@@ -123,6 +107,7 @@ def multiHops(adj, k):
     for i in range(k - 1):
         multi_adj = multi_adj.dot(adj)
     return multi_adj
+
 
 def pure_k_hops(adj, k):
     multi_adj = adj
