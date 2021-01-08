@@ -2,7 +2,7 @@
 
 This respository contains the PyTorch implementation of GraphHop for the task of semi-supervised classification of nodes in a graph, as described in our paper:
 
-Tian Xie, Bin Wang, C.-C. Jay Kuo, GraphHop: An Enhanced Label PropagationMethod for Node Classification.
+Tian Xie, Bin Wang, C.-C. Jay Kuo, GraphHop: An Enhanced Label PropagationMethod for Node Classification. [[paper]](https://arxiv.org/abs/2101.02326)
 
 
 ## Dependencies
