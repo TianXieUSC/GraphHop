@@ -19,3 +19,14 @@ You may change the hyperparameters inside the shell script.
 
 ## Citation
 If you are use this code for your research, please cite our paper.
+
+```
+@misc{xie2021graphhop,
+      title={GraphHop: An Enhanced Label Propagation Method for Node Classification}, 
+      author={Tian Xie and Bin Wang and C. -C. Jay Kuo},
+      year={2021},
+      eprint={2101.02326},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+```
