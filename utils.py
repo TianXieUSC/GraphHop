@@ -96,6 +96,7 @@ def random_walk_normalize(adj):
     # adj = adj + sp.eye(adj.shape[0])  # add self-loop
     row_sum = np.array(adj.sum(1)).astype('float')
     r_inv = np.power(row_sum, -1).flatten()
+    r_inv[r_inv == float('inf')] = 0
     r_mat_inv = sp.diags(r_inv)
     norm_adj = r_mat_inv.dot(adj)
     return norm_adj
