@@ -1,4 +1,4 @@
-# GraphHop: An Enhanced Label PropagationMethod for Node Classification
+# GraphHop: An Enhanced Label Propagation Method for Node Classification
 
 This respository contains the PyTorch implementation of GraphHop for the task of semi-supervised classification of nodes in a graph, as described in our paper:
 
